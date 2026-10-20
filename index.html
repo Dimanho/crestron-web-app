@@ -6,74 +6,52 @@
     <title>Пульт Управления</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Стилизация под темный пульт Crestron */
-        body {
-            background-color: #1a1a1a;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        body { background-color: #1a1a1a; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         h2 { color: #c0c0c0; text-align: center; font-size: 20px; font-weight: normal; margin-bottom: 25px; }
         .screen { display: none; width: 100%; max-width: 450px; }
         .active { display: block; }
         
-        /* Круглые кнопки главного меню */
+        /* Главное меню */
         .main-grid { display: flex; flex-wrap: wrap; justify-content: space-around; gap: 15px; }
-        .btn-circle {
-            width: 130px; height: 130px; border-radius: 50%;
-            background: #2a2a2a; border: 3px solid #555;
-            color: white; font-size: 15px; font-weight: bold;
-            cursor: pointer; transition: 0.1s;
-            display: flex; align-items: center; justify-content: center; text-align: center;
-        }
-        .btn-circle:active { border-color: #00ff00; box-shadow: 0 0 15px rgba(0,255,0,0.4); }
-
-        /* Прямоугольные кнопки залов */
+        .btn-circle { width: 130px; height: 130px; border-radius: 50%; background: #2a2a2a; border: 3px solid #555; color: white; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; }
+        
+        /* Кнопки залов */
         .room-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
-        .btn-rect {
-            width: 48%; height: 80px; background: #333;
-            border: 1px solid #555; border-radius: 10px;
-            color: white; font-size: 14px; 
-            cursor: pointer; transition: 0.1s;
-        }
-        .btn-rect:active { background: #0071bc; border-color: #00aaff; }
+        .btn-rect { width: 48%; height: 80px; background: #333; border: 1px solid #555; border-radius: 10px; color: white; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-rect:active { background: #0071bc; }
+
+        /* Индикация питания */
+        .power-on { box-shadow: 0 0 15px #4caf50; border: 2px solid #00ff00 !important; background: #2e7d32 !important; }
+        .power-off { box-shadow: 0 0 15px #ef5350; border: 2px solid #ff0000 !important; background: #c62828 !important; }
 
         /* Навигация */
         .nav-bar { width: 100%; display: flex; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px; }
         .back-btn { background: transparent; border: 1px solid #777; padding: 8px 15px; color: white; border-radius: 5px; font-size: 14px; cursor: pointer; }
-        .back-btn:active { background: #555; }
         .nav-title { margin-left: 20px; font-size: 18px; color: #fff; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- Главное меню (Выбор зала) -->
     <div id="main-menu" class="screen active">
         <h2>Управление комплексом</h2>
         <div class="main-grid">
             <button class="btn-circle" onclick="showScreen('mkz-menu')">Малый<br>конференц зал</button>
-            <button class="btn-circle" onclick="sendCmd('nav', 'cab_glava')">Кабинет<br>Главы</button>
-            <button class="btn-circle" onclick="sendCmd('nav', 'big_hall')">Большой<br>зал</button>
-            <button class="btn-circle" onclick="sendCmd('nav', 'operator')">Операторская</button>
+            <button class="btn-circle" onclick="tg.showAlert('В разработке')">Кабинет<br>Главы</button>
+            <button class="btn-circle" onclick="tg.showAlert('В разработке')">Большой<br>зал</button>
+            <button class="btn-circle" onclick="tg.showAlert('В разработке')">Операторская</button>
         </div>
     </div>
 
-    <!-- Меню МКЗ -->
     <div id="mkz-menu" class="screen">
         <div class="nav-bar">
             <button class="back-btn" onclick="showScreen('main-menu')">⬅ Назад</button>
             <div class="nav-title">МКЗ</div>
         </div>
 
-        <!-- Новые кнопки питания -->
         <h2>Питание</h2>
         <div class="room-grid">
-            <button class="btn-rect" style="background: #2e7d32; border-color: #4caf50;" onclick="sendCmd('digital', 10)">Включить зал</button>
-            <button class="btn-rect" style="background: #c62828; border-color: #ef5350;" onclick="sendCmd('digital', 11)">Выключить зал</button>
+            <button id="btn-on" class="btn-rect" style="border-color: #4caf50;" onclick="setPower('on'); sendCmd('digital', 10)">Включить зал</button>
+            <button id="btn-off" class="btn-rect" style="border-color: #ef5350;" onclick="setPower('off'); sendCmd('digital', 11)">Выключить зал</button>
         </div>
 
         <h2 style="margin-top: 30px;">Коммутация видео</h2>
@@ -82,47 +60,43 @@
             <button class="btn-rect" onclick="sendCmd('digital', 102)">Apple TV</button>
             <button class="btn-rect" onclick="sendCmd('digital', 103)">Беспроводная</button>
             <button class="btn-rect" onclick="sendCmd('digital', 104)">ВКС</button>
-            <button class="btn-rect" onclick="sendCmd('digital', 105)">Проводная</button>
-            <button class="btn-rect" onclick="sendCmd('digital', 106)">Просмотр ТВ</button>
-        </div>
-        
-        <h2 style="margin-top: 30px;">Микрофоны</h2>
-        <div class="room-grid">
-            <button class="btn-rect" onclick="sendCmd('digital', 692)">Пресет 1</button>
-            <button class="btn-rect" onclick="sendCmd('digital', 693)">Пресет 2</button>
         </div>
     </div>
 
     <script>
-        // Инициализация Telegram Web App
         let tg = window.Telegram.WebApp;
-        tg.expand(); // Открыть на весь экран
-        tg.enableClosingConfirmation(); // Подтверждение при случайном закрытии свайпом вниз
+        tg.expand();
 
-        // Функция переключения экранов
+        // Проверяем память при загрузке страницы
+        window.onload = () => {
+            let state = localStorage.getItem('mkz_power');
+            if(state) setPower(state);
+        };
+
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
+        }
+
+        function setPower(state) {
+            document.getElementById('btn-on').classList.remove('power-on');
+            document.getElementById('btn-off').classList.remove('power-off');
             
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
+            if(state === 'on') {
+                document.getElementById('btn-on').classList.add('power-on');
+                localStorage.setItem('mkz_power', 'on');
+            } else {
+                document.getElementById('btn-off').classList.add('power-off');
+                localStorage.setItem('mkz_power', 'off');
             }
         }
 
-        // Функция отправки данных в Python-бот
         function sendCmd(type, value) {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('medium');
-            }
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             
-            // Если это не переход по меню, а команда для Crestron
-            if (type === 'digital') {
-                let payload = { type: type, join: value };
-                tg.sendData(JSON.stringify(payload)); // Закрывает WebApp и шлет данные в чат
-            } else {
-                // Заглушка для нереализованных залов
-                tg.showAlert("Интерфейс этого зала находится в разработке.");
-            }
+            // Отправляем данные боту
+            let payload = { type: type, join: value };
+            tg.sendData(JSON.stringify(payload));
         }
     </script>
 </body>
